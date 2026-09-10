@@ -1,6 +1,6 @@
 <div class="cardSec mb-3" x-data="{ mesAbierto: '{{ array_key_first($pagosAgrupados->toArray()) }}', semanaAbierta: null }">
     <div class="cardSec-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-cash-stack me-1"></i> Historial de Pagos Agrupados</span>
+        <span><i class="bi bi-cash-stack me-1"></i> Historial de Pagos</span>
     </div>
     <div class="cardSec-body p-2 p-md-3">
         @forelse($pagosAgrupados as $mesClave => $semanas)
@@ -116,7 +116,7 @@
                                                             </div>
                                                             <div class="pt-1">
                                                                 <button type="button" class="bot botNaranja botChico" wire:click="abrirModalFoto({{ $pago->id }})">
-                                                                    <i class="bi bi-pencil"></i> Editar Pago
+                                                                    <i class="fas fa-edit"></i>
                                                                 </button>
                                                             </div>
                                                         </div>

@@ -22,12 +22,20 @@ class Cobranza extends Component
     public $casas = [], $cuartos = [], $contratos = [], $cuentas = [], $users = [];
     public function mount()
     {
-        $this->casas = Util::getArray('casas');
-        $this->cuentas = Util::getArray('cuentas');
-        $this->users = Util::getArray('users','name');
         $this->fechaPago = date('Y-m-d');
         $this->fechaIni = date('Y-m-01');
         $this->fechaFin = date('Y-m-t');
+        $this->casas = Util::getArray('casas');
+        $this->cuentas = Util::getArray('cuentas');
+        $this->users = Util::getArray('users', 'name');
+
+        $this->cuartos = Cuarto::query()
+            ->join('contratos', 'cuartos.id', '=', 'contratos.IdCuarto')
+            ->where('contratos.fechaFin', '>=', $this->fechaPago)
+            ->select('cuartos.id', 'cuartos.cuarto', 'cuartos.IdCasa')
+            ->distinct()
+            ->get()
+            ->toArray();
     }
     public function updatedKeyWord()
     {
@@ -77,13 +85,16 @@ class Cobranza extends Component
     private function cargarCuartos($idCasa)
     {
         $hoy = date('Y-m-d');
-        $this->cuartos = Cuarto::where('IdCasa', $idCasa)
-            ->whereHas('contratos', fn($q) => $q->where('fechaFin', '>=', $hoy))
-            ->pluck('cuarto', 'id')
+        
+        $this->cuartos = Cuarto::query()
+            ->join('contratos', 'cuartos.id', '=', 'contratos.IdCuarto')
+            ->where('cuartos.IdCasa', $idCasa)
+            ->where('contratos.fechaFin', '>=', $hoy)
+            ->distinct()
+            ->pluck('cuartos.cuarto', 'cuartos.id')
             ->toArray();
-        if (empty($this->cuartos)) {
-            $this->sinCuartosVigentes = true;
-        }
+
+        $this->sinCuartosVigentes = empty($this->cuartos);
     }
     private function cargarContratos($idCuarto)
     {
@@ -268,10 +279,6 @@ public function guardarPago()
             'estadoSemaforo' => $estadoSemaforo,
             'diasDiferencia' => abs((int)$diasDiferencia)
         ];
-    }
-    public function cargarMas()
-    {
-        $this->aniosVisibles++;
     }
     #[Computed]
     public function pagosAgrupados()

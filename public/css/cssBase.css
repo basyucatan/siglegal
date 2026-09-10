@@ -1,12 +1,12 @@
 :root {
     --primarioO: #1455A0;
     --primarioC: #2B7DBD;
-    --fondo: #F4F8FC;
+    --fondo: #e5eff9;
     --cardBorde: rgba(20, 55, 90, .18);
     --cardSombra: 0 4px 10px rgba(20, 55, 90, .12);
     --gradOpcion1: #272207;
     --gradOpcion2: #087F8C;
-    --gradOpcion3: #146B4A;
+    --gradOpcion3: #436282;
     --textoClaro: rgba(255, 255, 255, .9);
     --bordeInput: #7892A8;
     --bordeInputActivo: var(--primarioC);
@@ -16,7 +16,6 @@
 html, body {
     height: 100%;
     overflow: hidden;
-    background: var(--fondo);
 }
 .cardPrin, .cardSec {
     background: var(--fondo);
@@ -225,8 +224,12 @@ html, body {
 .ficha {
     min-height: 200px;
     overflow: hidden;
+    background-color: var(--fondo);
 }
-
+.ficha-boton {
+    background-color: var(--gradOpcion3);
+    color: lightcyan;
+}
 .ficha-body {
     display: none;
     overflow-x: hidden;
@@ -237,8 +240,8 @@ html, body {
 }
 
 .ficha-boton.active {
-    color: var(--primarioC);
-    box-shadow: inset 0 4px 0 var(--primarioC);
+    color: cyan;
+    box-shadow: inset 0 4px 0 cyan;
 }
 @media(max-width: 767.98px) {
     .arbol1, .arbol2, .tabBase.ch td, .tabBase.ch th {
