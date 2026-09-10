@@ -106,59 +106,64 @@
                         </div>
                     </div>
                 </div>
-<div class="cardSec mb-1" x-data="{ verPenas: true, semanaAbierta: null }">
-    <div class="cardSec-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> Incidencias</span>
-        <button type="button" class="bot botNegro botChico" @click="verPenas = !verPenas">
-            <i class="bi" :class="verPenas ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
-        </button>
-    </div>
+                <div class="cardSec mb-1" x-data="{ verPenas: true, semanaAbierta: null }">
+                    <div class="cardSec-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> Incidencias</span>
+                        <button type="button" class="bot botNegro botChico" @click="verPenas = !verPenas">
+                            <i class="bi" :class="verPenas ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                        </button>
+                    </div>
 
-    <div class="cardSec-body p-2" x-show="verPenas" style="max-height: 25vh; overflow-y: auto;">
-        @forelse($this->penasSemanales as $semana => $items)
-            <div class="border rounded mb-2 bg-light">
-                <!-- Cabecera de la Semana -->
-                <div class="p-2 d-flex justify-content-between align-items-center"
-                    style="cursor: pointer;"
-                    @click="semanaAbierta = (semanaAbierta === '{{ $semana }}' ? null : '{{ $semana }}')">
-                    <span class="fw-bold small">
-                        <i class="bi" :class="semanaAbierta === '{{ $semana }}' ? 'bi-folder2-open text-primary' : 'bi-folder2 text-secondary'"></i>
-                        {{ $semana }}
-                    </span>
-                    <span class="badge bg-danger rounded-pill">{{ $items->count() }}</span>
-                </div>
-
-                <!-- Lista de Incidencias -->
-                <div x-show="semanaAbierta === '{{ $semana }}'" class="border-top bg-white p-2">
-                    @foreach($items as $item)
-                        <div class="d-flex justify-content-between align-items-center border-bottom pb-1 mb-1 last-border-0 {{ $item['tipo'] === 'falta' ? 'bg-danger bg-opacity-10 p-1 rounded' : '' }}">
-                            <div>
-                                <div class="fw-bold" style="font-size: 0.75rem;">
-                                    {{ Util::formatFecha($item['fecha'],'Corta') }}
+                    <div class="cardSec-body p-2" x-show="verPenas" style="max-height: 25vh; overflow-y: auto;">
+                        @forelse($this->penasSemanales as $semana => $items)
+                            <div class="border rounded mb-2 bg-light">
+                                <!-- Cabecera de la Semana -->
+                                <div class="p-2 d-flex justify-content-between align-items-center"
+                                    style="cursor: pointer;"
+                                    @click="semanaAbierta = (semanaAbierta === '{{ $semana }}' ? null : '{{ $semana }}')">
+                                    <span class="fw-bold small">
+                                        <i class="bi"
+                                            :class="semanaAbierta === '{{ $semana }}' ? 'bi-folder2-open text-primary' :
+                                                'bi-folder2 text-secondary'"></i>
+                                        {{ $semana }}
+                                    </span>
+                                    <span class="badge bg-danger rounded-pill">{{ $items->count() }}</span>
                                 </div>
-                                <div class="text-muted" style="font-size: 0.7rem;">
-                                    {{ $item['detalle'] }}
+
+                                <!-- Lista de Incidencias -->
+                                <div x-show="semanaAbierta === '{{ $semana }}'"
+                                    class="border-top bg-white p-2">
+                                    @foreach ($items as $item)
+                                        <div
+                                            class="d-flex justify-content-between align-items-center border-bottom pb-1 mb-1 last-border-0 {{ $item['tipo'] === 'falta' ? 'bg-danger bg-opacity-10 p-1 rounded' : '' }}">
+                                            <div>
+                                                <div class="fw-bold" style="font-size: 0.75rem;">
+                                                    {{ Util::formatFecha($item['fecha'], 'Corta') }}
+                                                </div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">
+                                                    {{ $item['detalle'] }}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="badge {{ $item['claseBadge'] }}"
+                                                    style="font-size: 0.65rem;">
+                                                    @if ($item['tipo'] === 'falta')
+                                                        <i class="bi bi-x-circle-fill me-1"></i>
+                                                    @endif
+                                                    {{ $item['titulo'] }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
-                            <div>
-                                <span class="badge {{ $item['claseBadge'] }}" style="font-size: 0.65rem;">
-                                    @if($item['tipo'] === 'falta')
-                                        <i class="bi bi-x-circle-fill me-1"></i>
-                                    @endif
-                                    {{ $item['titulo'] }}
-                                </span>
+                        @empty
+                            <div class="text-center text-muted small py-2">
+                                Sin incidencias ni faltas en las últimas 2 semanas.
                             </div>
-                        </div>
-                    @endforeach
+                        @endforelse
+                    </div>
                 </div>
-            </div>
-        @empty
-            <div class="text-center text-muted small py-2">
-                Sin incidencias ni faltas en las últimas 2 semanas.
-            </div>
-        @endforelse
-    </div>
-</div>                
                 <div class="cardSec mb-1" x-data="{ verMapa: true }">
                     <div class="cardSec-header d-flex justify-content-between align-items-center">
                         <span>Mapa de Ubicaciones</span>

@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Livewire;
+
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -12,17 +14,17 @@ class Cobranza extends Component
 {
     use WithPagination, WithFileUploads;
     protected $paginationTheme = 'bootstrap';
-    public $IdCasa, $IdCuarto, $IdContrato, $keyWord, $IdRecibo, $idPagoEdicion, 
-        $montoPago, 
+    public $IdCasa, $IdCuarto, $IdContrato, $keyWord, $IdRecibo, $idPagoEdicion,
+        $tipo = 'efectivo', $IdCuenta, $IdValida, $aniosVisibles = 1,
+        $montoPago, $fechaIni, $fechaFin, $mostrarSelectContrato = false,
+        $filtroVista = 'proximo', $sinCuartosVigentes = false,
         $fechaPago, $foto, $fotoActual, $verModalPago = false;
-    public $fechaIni, $fechaFin;
-    public $filtroVista = 'proximo';
-    public $mostrarSelectContrato = false;
-    public $sinCuartosVigentes = false;
-    public $casas = [], $cuartos = [], $contratos = [];
+    public $casas = [], $cuartos = [], $contratos = [], $cuentas = [], $users = [];
     public function mount()
     {
         $this->casas = Util::getArray('casas');
+        $this->cuentas = Util::getArray('cuentas');
+        $this->users = Util::getArray('users','name');
         $this->fechaPago = date('Y-m-d');
         $this->fechaIni = date('Y-m-01');
         $this->fechaFin = date('Y-m-t');
@@ -112,6 +114,9 @@ class Cobranza extends Component
         $saldo = $recibo->montoRenta - $totalPagado;
         $this->montoPago = $saldo > 0 ? $saldo : 0;
         $this->fechaPago = date('Y-m-d');
+        $this->tipo = 'efectivo';
+        $this->IdCuenta = null;
+        $this->IdValida = auth()->id();
         $this->foto = null;
         $this->fotoActual = null;
         $this->verModalPago = true;
@@ -127,45 +132,57 @@ class Cobranza extends Component
         $this->fotoActual = $pago->adicionales['foto'] ?? null;
         $this->verModalPago = true;
     }
-    public function guardarPago()
-    {
-        $this->validate([
-            'montoPago' => 'required|numeric|min:0.01',
-            'fechaPago' => 'required|date',
-            'foto' => 'nullable|image|max:4096'
-        ]);
-        if ($this->idPagoEdicion) {
-            $pago = Pago::findOrFail($this->idPagoEdicion);
-            $adicionales = $pago->adicionales ?? [];
-            if ($this->foto) {
-                if (isset($adicionales['foto'])) {
-                    Storage::disk('public')->delete($adicionales['foto']);
-                }
-                $adicionales['foto'] = $this->foto->store('comprobantes', 'public');
-            }
-            $pago->update([
-                'montoPago' => $this->montoPago,
-                'fecha' => $this->fechaPago,
-                'adicionales' => $adicionales
-            ]);
-        } else {
-            $this->validate([
-                'IdRecibo' => 'required'
-            ]);
-            $adicionales = [];
-            if ($this->foto) {
-                $adicionales['foto'] = $this->foto->store('comprobantes', 'public');
-            }
-            Pago::create([
-                'IdRecibo' => $this->IdRecibo,
-                'montoPago' => $this->montoPago,
-                'fecha' => $this->fechaPago,
-                'adicionales' => $adicionales
-            ]);
-        }
-        $this->verModalPago = false;
-        $this->reset(['IdRecibo', 'idPagoEdicion', 'montoPago', 'foto', 'fotoActual']);
+public function guardarPago()
+{
+    $rules = [
+        'montoPago' => 'required|numeric|min:0.01',
+        'fechaPago' => 'required|date',
+        'tipo' => 'required|in:efectivo,transferencia,otro',
+        'foto' => 'nullable|image|max:4096'
+    ];
+
+    if ($this->tipo === 'transferencia') {
+        $rules['IdCuenta'] = 'required';
+    } elseif ($this->tipo === 'efectivo') {
+        $rules['IdValida'] = 'required';
     }
+
+    $this->validate($rules);
+
+    $data = [
+        'montoPago' => $this->montoPago,
+        'fecha' => $this->fechaPago,
+        'tipo' => $this->tipo,
+        'IdCuenta' => $this->tipo === 'transferencia' ? $this->IdCuenta : null,
+        'IdValida' => $this->tipo === 'efectivo' ? $this->IdValida : auth()->id(),
+    ];
+
+    if ($this->idPagoEdicion) {
+        $pago = Pago::findOrFail($this->idPagoEdicion);
+        $adicionales = $pago->adicionales ?? [];
+        if ($this->foto) {
+            if (isset($adicionales['foto'])) {
+                Storage::disk('public')->delete($adicionales['foto']);
+            }
+            $adicionales['foto'] = $this->foto->store('comprobantes', 'public');
+        }
+        $data['adicionales'] = $adicionales;
+        $pago->update($data);
+    } else {
+        $this->validate(['IdRecibo' => 'required']);
+        $adicionales = [];
+        if ($this->foto) {
+            $adicionales['foto'] = $this->foto->store('comprobantes', 'public');
+        }
+        $data['IdRecibo'] = $this->IdRecibo;
+        $data['adicionales'] = $adicionales;
+        Pago::create($data);
+    }
+
+    $this->verModalPago = false;
+    $this->reset(['IdRecibo', 'idPagoEdicion', 'montoPago', 'foto', 'fotoActual', 
+        'tipo', 'IdCuenta', 'IdValida']);
+}
     public function eliminarPago($idPago)
     {
         $pago = Pago::find($idPago);
@@ -175,10 +192,6 @@ class Cobranza extends Component
             }
             $pago->delete();
         }
-    }
-    public function imprimirAnieja()
-    {
-        return Contrato::imprimirAnieja();
     }
     public function imprimirReporte()
     {
@@ -203,7 +216,6 @@ class Cobranza extends Component
         $pdf->setPaper('letter', 'portrait');
         return response()->streamDownload(fn() => print($pdf->output()), "reporte_cobranza.pdf", ['Content-Type' => 'application/pdf']);
     }
-
     #[Computed]
     public function todosLosRecibos()
     {
@@ -257,10 +269,43 @@ class Cobranza extends Component
             'diasDiferencia' => abs((int)$diasDiferencia)
         ];
     }
+    public function cargarMas()
+    {
+        $this->aniosVisibles++;
+    }
+    #[Computed]
+    public function pagosAgrupados()
+    {
+        return Pago::with(['recibo.contrato.inquilino', 'recibo.contrato.cuarto', 'cuenta', 'valida'])
+            ->whereNotNull('fecha')
+            ->orderBy('fecha', 'desc')
+            ->get()
+            ->groupBy(function ($pago) {
+                return Carbon::parse($pago->fecha)->format('Y-m');
+            })
+            ->map(function ($pagosMes) {
+                return $pagosMes->groupBy(function ($pago) {
+                    return Carbon::parse($pago->fecha)->format('W');
+                })->map(function ($pagosSemana) {
+                    return $pagosSemana->groupBy('tipo');
+                });
+            });
+    }
+    #[Computed]
+    public function contratosAniejados()
+    {
+        return Contrato::with([
+            'inquilino', 
+            'cuarto.casa', 
+            'recibos.pagos'
+        ])->get();
+    }
     public function render()
     {
         return view('livewire.cobranza.view', [
-            'analitica' => $this->analiticaRecibos
+            'analitica' => $this->analiticaRecibos,
+            'contratosAniejados' => $this->contratosAniejados,
+            'pagosAgrupados' => $this->pagosAgrupados
         ]);
     }
 }

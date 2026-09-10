@@ -13,7 +13,7 @@ class Pago extends Model
 
     protected $table = 'pagos';
 
-    protected $fillable = ['IdRecibo','montoPago','fecha','adicionales'];
+    protected $fillable = ['IdRecibo','IdValida','montoPago','tipo','IdCuenta','fecha','adicionales'];
     protected $casts = [
         'adicionales' => 'array'
     ];
@@ -22,5 +22,13 @@ class Pago extends Model
     {
         return $this->hasOne('App\Models\Recibo', 'id', 'IdRecibo');
     }
-    
+    public function valida()
+    {
+        return $this->belongsTo(User::class, 'IdValida');
+    }
+
+    public function cuenta()
+    {
+        return $this->belongsTo(Cuenta::class, 'IdCuenta');
+    }
 }

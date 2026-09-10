@@ -1,19 +1,17 @@
 :root {
-    --primarioO: #766502;
-    --primarioC: #b6ad7c;
-    --fondo: #f3f6f9;
-    --cardFondo: #f1f5f9;
-    --cardBorde: rgba(0, 0, 0, .15);
-    --cardSombra: 0 4px 10px rgba(0, 0, 0, .1);
-    --gradPrinHFinal: #272207;
-    --gradPrinFFinal: #030055;
-    --gradSecHFinal: #0a2906;
-    --gradSecFFin: #090023;
-    --textoClaro: rgba(255, 255, 255, .85);
-    --bordeInput: #636363;
+    --primarioO: #1455A0;
+    --primarioC: #2B7DBD;
+    --fondo: #F4F8FC;
+    --cardBorde: rgba(20, 55, 90, .18);
+    --cardSombra: 0 4px 10px rgba(20, 55, 90, .12);
+    --gradOpcion1: #272207;
+    --gradOpcion2: #087F8C;
+    --gradOpcion3: #146B4A;
+    --textoClaro: rgba(255, 255, 255, .9);
+    --bordeInput: #7892A8;
     --bordeInputActivo: var(--primarioC);
-    --tablaPar: lightcyan;
-    --hover: rgba(187, 255, 0, 0.6);
+    --tablaPar: #EAF4FA;
+    --hover: rgba(255, 193, 7, .35);
 }
 html, body {
     height: 100%;
@@ -21,7 +19,7 @@ html, body {
     background: var(--fondo);
 }
 .cardPrin, .cardSec {
-    background: var(--cardFondo);
+    background: var(--fondo);
     border: 1px solid var(--cardBorde);
     border-radius: .5rem;
     overflow: hidden;
@@ -30,6 +28,7 @@ html, body {
 .cardPrin-body,
 .cardSec-body{
     overflow-y:auto;
+    overflow-x: hidden;
     padding:5px;
 }
 .cardPrin-header {
@@ -40,13 +39,13 @@ html, body {
     color: white;
     font-weight: 700;
     font-size: 18px;
-    background: linear-gradient(to right, var(--primarioO), var(--gradPrinHFinal));
+    background: linear-gradient(to right, var(--primarioO), var(--gradOpcion1));
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, .2);
 }
 .cardPrin-footer {
     padding: .4rem .7rem;
     color: var(--textoClaro);
-    background: linear-gradient(135deg, var(--primarioC), var(--gradPrinFFinal));
+    background: linear-gradient(135deg, var(--primarioC), var(--gradOpcion2));
 }
 .cardSec-header {
     display: flex;
@@ -56,13 +55,13 @@ html, body {
     color: white;
     font-weight: 600;
     font-size: 14px;
-    background: linear-gradient(135deg, var(--primarioC), var(--gradSecHFinal));
+    background: linear-gradient(135deg, var(--primarioC), var(--gradOpcion3));
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2);
 }
 .cardSec-footer {
     padding: .4rem .7rem;
     color: var(--bs-dark);
-    background: linear-gradient(135deg, white, var(--gradSecFFin));
+    background: linear-gradient(135deg, white, var(--gradOpcion3));
 }
 .inpSolo, .etiBase, .inpBase, .etiChico, .inpChico {
     width: 100%;
@@ -81,7 +80,7 @@ html, body {
     border-radius: 5px;
 }
 .etiBase {
-    background: linear-gradient(to right, var(--primarioC), white);
+    background: linear-gradient(to right, white, var(--primarioC));
 }
 .etiChico {
     background: linear-gradient(to right, black, var(--primarioO));
@@ -216,14 +215,31 @@ html, body {
 }
 .arbol1 {
     border-left: 6px solid var(--primarioO) !important;
-    background-color: var(--cardFondo);
+    background-color: var(--fondo);
 }
 .arbol2 {
     border-left: 3px solid #dee2e6 !important;
-    background-color: var(--cardFondo);
+    background-color: var(--fondo);
     margin-left: 2rem;
 }
+.ficha {
+    min-height: 200px;
+    overflow: hidden;
+}
 
+.ficha-body {
+    display: none;
+    overflow-x: hidden;
+}
+
+.ficha-body.active {
+    display: block;
+}
+
+.ficha-boton.active {
+    color: var(--primarioC);
+    box-shadow: inset 0 4px 0 var(--primarioC);
+}
 @media(max-width: 767.98px) {
     .arbol1, .arbol2, .tabBase.ch td, .tabBase.ch th {
         font-size: 16px !important;

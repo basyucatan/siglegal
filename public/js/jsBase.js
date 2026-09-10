@@ -56,3 +56,18 @@ document.addEventListener('focusin', function(e) {
         e.target.select();
     }
 });
+//tabs
+document.querySelectorAll('.ficha').forEach(contenedor => {
+    const botones = contenedor.querySelectorAll('.ficha-boton');
+    const contenidos = contenedor.querySelectorAll('.ficha-body');
+
+    botones.forEach((boton, indice) => {
+        boton.addEventListener('click', () => {
+            botones.forEach(item => item.classList.remove('active'));
+            contenidos.forEach(item => item.classList.remove('active'));
+
+            boton.classList.add('active');
+            contenidos[indice].classList.add('active');
+        });
+    });
+});

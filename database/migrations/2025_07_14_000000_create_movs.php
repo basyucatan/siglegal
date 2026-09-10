@@ -61,6 +61,9 @@ return new class extends Migration
         Schema::create('pagos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('IdRecibo')->constrained('recibos')->cascadeOnDelete();
+            $table->foreignId('IdValida')->nullable()->constrained('users')->restrictOnDelete();
+            $table->enum('tipo', ['efectivo', 'transferencia', 'otro']);
+            $table->foreignId('IdCuenta')->nullable()->constrained('cuentas')->restrictOnDelete();
             $table->decimal('montoPago',10,2);
             $table->date('fecha');
             $table->json('adicionales')->nullable();

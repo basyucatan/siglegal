@@ -18,6 +18,12 @@ return new class extends Migration
             $table->string('ubicacion', 60)->nullable();
             $table->json('adicionales')->nullable();
         });
+        Schema::create('cuentas', function (Blueprint $table) {
+            $table->id();
+            $table->string('cuenta', 20)->unique();
+            $table->string('nombre', 255);
+            $table->json('adicionales')->nullable();
+        });
         Schema::create('cuartos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('IdCasa')->constrained('casas')->cascadeOnDelete();

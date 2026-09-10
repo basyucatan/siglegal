@@ -36,7 +36,40 @@
                             <input wire:model="fechaPago" type="date" class="inpBase">
                             @error('fechaPago') <span class="text-danger" style="font-size: 12px;">{{ $message }}</span> @enderror
                         </div>
+<div class="row g-2 mb-2">
+    <div class="col-12 col-md-4">
+        <label class="etiBase">Tipo de Pago</label>
+        <select wire:model.live="tipo" class="inpBase">
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="otro">Otro</option>
+        </select>
+    </div>
 
+    @if($tipo === 'transferencia')
+        <div class="col-12 col-md-8">
+            <label class="etiBase">Cuenta Receptora</label>
+            <select wire:model="IdCuenta" class="inpBase">
+                <option value="">-- Seleccionar Cuenta --</option>
+                @foreach($cuentas as $id => $cuenta)
+                    <option value="{{ $id }}">{{ $cuenta }}</option>
+                @endforeach
+            </select>
+            @error('IdCuenta') <span class="text-danger small">{{ $message }}</span> @enderror
+        </div>
+    @elseif($tipo === 'efectivo')
+        <div class="col-12 col-md-8">
+            <label class="etiBase">Recibido por</label>
+            <select wire:model="IdValida" class="inpBase">
+                <option value="">-- Seleccionar Usuario --</option>
+                @foreach($users as $id => $nombre)
+                    <option value="{{ $id }}">{{ $nombre }}</option>
+                @endforeach
+            </select>
+            @error('IdValida') <span class="text-danger small">{{ $message }}</span> @enderror
+        </div>
+    @endif
+</div>
                         <div style="margin-bottom: 15px;">
                             <label class="etiBase">Comprobante (Archivo, Cámara o Ctrl+V)</label>
                             <input type="file" wire:model="foto" accept="image/*" capture="environment" class="inpBase" wire:loading.attr="disabled" wire:target="foto" :disabled="subiendoFoto">

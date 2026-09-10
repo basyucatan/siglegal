@@ -28,6 +28,18 @@ class Contrato extends Model
             return $totalPagado < $recibo->montoRenta;
         });
     }
+    private function getRecibosVencidos()
+    {
+        $hoy = now()->startOfDay();
+        return $this->getRecibosPendientes()
+            ->filter(function ($recibo) use ($hoy) {
+                if (!$recibo->fechaVence) {
+                    return false;
+                }
+                $vence = Carbon::parse($recibo->fechaVence)->startOfDay();
+                return $vence->lt($hoy);
+            });
+    }
     public function getAniejaAdeudoAttribute()
     {
         $reciboVencido = $this->getRecibosPendientes()
@@ -66,27 +78,32 @@ class Contrato extends Model
     public function getAniejaPagoAttribute()
     {
         $idsRecibos = $this->recibos()->pluck('id');
-        $ultimoPago = Pago::whereIn('IdRecibo', $idsRecibos)->orderBy('fecha', 'desc')->first();
-        $hayPendientes = $this->getRecibosPendientes()->isNotEmpty();
+        $ultimoPago = Pago::whereIn('IdRecibo', $idsRecibos)
+            ->orderBy('fecha', 'desc')
+            ->first();
+        $hayAdeudoVencido = $this->getRecibosVencidos()->isNotEmpty();
         if (!$ultimoPago) {
             $val = null;
             $label = 'Sin pagos';
-            $color = $hayPendientes ? 'bg-danger' : 'bg-info text-dark';
             $fechaUltimoPago = 'Sin pagos';
-        } else {
-            $fechaUltimoPago = Carbon::parse($ultimoPago->fecha)->format('d/m/Y');
-            $val = (int) Carbon::parse($ultimoPago->fecha)->startOfDay()->diffInDays(now()->startOfDay());
-            $label = $val . ' d';
-            if (!$hayPendientes) {
-                $color = 'bg-success';
+            if ($hayAdeudoVencido) {
+                $color = 'bg-danger';
             } else {
-                if ($val === 0) {
-                    $color = 'bg-info text-dark';
-                } elseif ($val <= 3) {
-                    $color = 'bg-warning text-dark';
-                } else {
-                    $color = 'bg-danger';
-                }
+                $color = 'bg-success';
+            }
+        } else {
+            $fechaPago = Carbon::parse($ultimoPago->fecha)->startOfDay();
+            $fechaUltimoPago = $fechaPago->format('d/m/Y');
+            $val = (int) $fechaPago->diffInDays(now()->startOfDay());
+            $label = $val . ' d';
+            if (!$hayAdeudoVencido) {
+                $color = 'bg-success';
+            } elseif ($val === 0) {
+                $color = 'bg-info text-dark';
+            } elseif ($val <= 3) {
+                $color = 'bg-warning text-dark';
+            } else {
+                $color = 'bg-danger';
             }
         }
         return [
