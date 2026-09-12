@@ -26,7 +26,7 @@ class Cobranza extends Component
         $this->fechaIni = date('Y-m-01');
         $this->fechaFin = date('Y-m-t');
         $this->casas = Util::getArray('casas');
-        $this->cuentas = Util::getArray('cuentas');
+        $this->cuentas = Util::getArray('cuentas', 'nombre');
         $this->users = Util::getArray('users', 'name');
 
         $this->cuartos = Cuarto::query()

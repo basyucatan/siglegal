@@ -180,10 +180,16 @@
                                                     @endif
                                                 </td>
                                                 <td class="text-end">
-                                                    @if(auth()->user()->roles->min('nivel') < 3)
+                                                    @if(auth()->user()->roles->min('nivel') < 5)
+                                                        <button wire:click="abrirModalFoto({{ $pago->id }})"
+                                                            class="bot botNaranja botChico" title="Editar">
+                                                            <i class="bi-pencil-square"></i>
+                                                        </button>
                                                         <button wire:click="eliminarPago({{ $pago->id }})"
-                                                            class="bot botRojo botChico p-0 px-1"
-                                                            title="Eliminar abono">✕</button>
+                                                            class="bot botRojo botChico"
+                                                            onclick="confirm('¿Estás seguro de eliminar este registro?') || event.stopImmediatePropagation()">
+                                                            <i class="bi-trash3-fill"></i>
+                                                        </button>
                                                     @endif
                                                 </td>
                                             </tr>

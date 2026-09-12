@@ -115,9 +115,17 @@
                                                                 </div>
                                                             </div>
                                                             <div class="pt-1">
-                                                                <button type="button" class="bot botNaranja botChico" wire:click="abrirModalFoto({{ $pago->id }})">
-                                                                    <i class="fas fa-edit"></i>
-                                                                </button>
+                                                                @if(auth()->user()->roles->min('nivel') < 5)
+                                                                    <button wire:click="abrirModalFoto({{ $pago->id }})"
+                                                                        class="bot botNaranja botChico" title="Editar">
+                                                                        <i class="bi-pencil-square"></i>
+                                                                    </button>
+                                                                    <button wire:click="eliminarPago({{ $pago->id }})"
+                                                                        class="bot botRojo botChico"
+                                                                        onclick="confirm('¿Estás seguro de eliminar este registro?') || event.stopImmediatePropagation()">
+                                                                        <i class="bi-trash3-fill"></i>
+                                                                    </button>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     </div>

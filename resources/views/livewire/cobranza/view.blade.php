@@ -1,7 +1,7 @@
 @section('title', __('Cobranza'))
 <div class="container-fluid p-0" style="max-height:90vh;" 
      x-data="{
-        tab: 'aniejamiento',
+        tab: 'estadoCuenta',
         idCasa: @entangle('IdCasa'),
         idCuarto: @entangle('IdCuarto'),
         cuartos: {{ json_encode($cuartos) }},

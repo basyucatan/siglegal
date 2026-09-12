@@ -54,7 +54,7 @@ class Contrato extends Model
         } else {
             $hoy = now()->startOfDay();
             $vence = Carbon::parse($reciboVencido->fechaVence)->startOfDay();
-            $fechaVence = Carbon::parse($reciboVencido->fechaVence)->format('d/m/Y');
+            $fechaVence = $reciboVencido->fechaVence;
             $montoPendiente = $reciboVencido->montoRenta - $reciboVencido->pagos->sum('montoPago');
             if ($hoy->gt($vence)) {
                 $val = (int) $vence->diffInDays($hoy);

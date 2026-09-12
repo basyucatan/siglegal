@@ -8,6 +8,8 @@ use Livewire\Attributes\Computed;
 use App\Models\{Util};
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 class Contratos extends Component
 {
     use WithPagination;
