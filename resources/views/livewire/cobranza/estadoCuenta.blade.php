@@ -156,7 +156,7 @@
                                             <th>Monto</th>
                                             <th class="text-center">Comprobante</th>
                                             <th class="text-end">Foto</th>
-                                            <th class="text-end">Acción</th>
+                                            <th class="text-end">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -169,10 +169,6 @@
                                                         <a href="{{ asset('storage/' . $pago->adicionales['foto']) }}"
                                                             target="_blank"
                                                             class="bot botAzul botChico p-0 px-1 me-1">Ver</a>
-                                                        <button
-                                                            wire:click="abrirModalFoto({{ $pago->id }})"
-                                                            class="bot botGris botChico p-0 px-1"
-                                                            title="Editar pago o foto">✎</button>
                                                     @else
                                                         <button
                                                             wire:click="abrirModalFoto({{ $pago->id }})"
