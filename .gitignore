@@ -27,6 +27,7 @@ public/oc/
 !.env.example
 /public/hot
 /public/mix-manifest.json
+/public/error_log
 *.log
 .idea
 .vscode
