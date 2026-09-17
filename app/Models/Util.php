@@ -32,122 +32,86 @@ class Util
         $division = $denominador != 0 ? $numerador / $denominador : 0;
         return $division;
     }
-public static function formatFecha($date, $formato = 'Larga')
-{
-    $carbonDate = Carbon::parse($date);
-    $diasSemana = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
-    $meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    $mes = $meses[$carbonDate->month - 1];
-    $mesCorto = mb_substr($mes, 0, 3);
-    switch ($formato) {
-        case 'Texto':
-            $letras = new \Luecano\NumeroALetras\NumeroALetras();
-            $fecha = mb_strtoupper(sprintf(
-                '%s DE %s DE %s',
-                $letras->toWords($carbonDate->day),
-                $mes,
-                $letras->toWords($carbonDate->year)
-            ));
-            break;
-        case 'Corta':
-            $fecha = sprintf(
-                "%s %d/%s",
-                $diasSemana[$carbonDate->dayOfWeek],
-                $carbonDate->day,
-                $mesCorto
-            );
-            break;
-        case 'DDMMM HH:mm':
-            $fecha = sprintf(
-                "%d%s %02d:%02d",
-                $carbonDate->day,
-                $mesCorto,
-                $carbonDate->hour,
-                $carbonDate->minute
-            );
-            break;
-        case 'hm':
-            $fecha = sprintf(
-                "%02d:%02d",
-                $carbonDate->hour,
-                $carbonDate->minute
-            );
-            break;
-        case 'Dhm':
-            $fecha = sprintf(
-                "%d | %02d:%02d",
-                $carbonDate->day,
-                $carbonDate->hour,
-                $carbonDate->minute
-            );
-            break;
-        case 'CortaDhm':
-            $fecha = sprintf(
-                "%s %d/%s %02d:%02d",
-                $diasSemana[$carbonDate->dayOfWeek],
-                $carbonDate->day,
-                $mesCorto,
-                $carbonDate->hour,
-                $carbonDate->minute
-            );
-            break;
-        case 'MMM/AA':
-            $fecha = sprintf(
-                "%s/%s",
-                $mesCorto,
-                $carbonDate->format('y')
-            );
-            break;
-        case 'D/MMM':
-            $fecha = sprintf(
-                "%d/%s",
-                $carbonDate->day,
-                $mesCorto
-            );
-            break;
-        case 'prefijo':
-            $fecha = sprintf(
-                "%02d%02d%02d",
-                $carbonDate->year % 100,
-                $carbonDate->month,
-                $carbonDate->day
-            );
-            break;
+    public static function formatFecha($date, $formato = 'Larga')
+    {
+        $carbonDate = Carbon::parse($date);
+        $diasSemana = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+        $meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        switch ($formato) {
+            case 'Corta': //Dom 9/Feb
+                $fecha = sprintf(
+                    "%s %d/%s",
+                    $diasSemana[$carbonDate->dayOfWeek],
+                    $carbonDate->day,
+                    $meses[$carbonDate->month - 1]
+                );
+                break;
+            case 'DDMMM HH:mm': //29Feb 22:55
+                $fecha = sprintf(
+                    "%d%s %02d:%02d",
+                    $carbonDate->day,
+                    $meses[$carbonDate->month - 1],
+                    $carbonDate->hour,
+                    $carbonDate->minute
+                );
+            break;                
+            case 'MMM/AA': //Feb/25	
+                $fecha = sprintf(
+                    "%s/%s",
+                    $meses[$carbonDate->month - 1],
+                    $carbonDate->format('y')
+                );
+                break;
+            case 'D/MMM': //8/Feb
+                $fecha = sprintf(
+                    "%d/%s",
+                    $carbonDate->day,
+                    $meses[$carbonDate->month - 1]
+                );
+                break;              
+            case 'D/MMM/AA': //8/Feb/25	
+                $fecha = sprintf(
+                    "%d/%s/%02d",
+                    $carbonDate->day,
+                    $meses[$carbonDate->month - 1],
+                    $carbonDate->year % 100 // Obtiene los últimos dos dígitos del año
+                );
+                break;
+            case 'MM/DD/YY':
+                $fecha = sprintf(
+                    "%02d/%02d/%02d",
+                    $carbonDate->month,
+                    $carbonDate->day,
+                    $carbonDate->year % 100
+                );
+                break;                
+            case 'abreviada': // S8Feb25|2331
+                $fecha = sprintf(
+                    "%s%d%s%02dH%02d%02d",
+                    mb_substr($diasSemana[$carbonDate->dayOfWeek], 0, 1),
+                    $carbonDate->day,
+                    $meses[$carbonDate->month - 1],
+                    $carbonDate->year % 100,
+                    $carbonDate->hour,
+                    $carbonDate->minute
+                );
+                break;
 
-        case 'D/MMM/AA':
-            $fecha = sprintf(
-                "%d/%s/%02d",
-                $carbonDate->day,
-                $mesCorto,
-                $carbonDate->year % 100
-            );
-            break;
-        case 'abreviada':
-            $fecha = sprintf(
-                "%s%d%s%02dH%02d%02d",
-                mb_substr($diasSemana[$carbonDate->dayOfWeek], 0, 1),
-                $carbonDate->day,
-                $mesCorto,
-                $carbonDate->year % 100,
-                $carbonDate->hour,
-                $carbonDate->minute
-            );
-            break;
-        case 'Larga':
-        default:
-            $fecha = sprintf(
-                "%s %d/%s/%s %02d:%02d",
-                $diasSemana[$carbonDate->dayOfWeek],
-                $carbonDate->day,
-                $mesCorto,
-                $carbonDate->format('y'),
-                $carbonDate->hour,
-                $carbonDate->minute
-            );
-            break;
+            case 'Larga': //Sab 8/Feb/25 23:31
+            default:
+                $fecha = sprintf(
+                    "%s %d/%s/%s %02d:%02d",
+                    $diasSemana[$carbonDate->dayOfWeek],
+                    $carbonDate->day,
+                    $meses[$carbonDate->month - 1],
+                    $carbonDate->format('y'),
+                    $carbonDate->hour,
+                    $carbonDate->minute
+                );
+                break;
+        }
+        return $fecha;
     }
-    return $fecha;
-}
     public static function getArray(string $tabla, ?string $campo = null): array
     {
         //Si no se especifica $campo, es con base a la tabla, ejemplo: $this->vidrios = Util::getArray('vidrios');
