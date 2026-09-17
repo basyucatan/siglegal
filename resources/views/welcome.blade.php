@@ -27,7 +27,7 @@
                     <a href="/cobhuesped" class="bot botVerde">Mi cuenta</a>
                 @endrole
                 @unlessrole('inquilino')
-                    <a href="/asistencias" class="bot botVerde">Checador</a>
+                    <a href="/expedientes" class="bot botVerde">Expedientes</a>
                 @endunlessrole
             </div>
         @endauth
