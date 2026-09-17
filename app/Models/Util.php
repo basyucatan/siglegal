@@ -209,6 +209,10 @@ public static function formatFecha($date, $formato = 'Larga')
             // Lógica de redimensionamiento
             $image->scaleDown(width: $maxSide, height: $maxSide);
             // Guardado optimizado por calidad
+            $directorioTemp = storage_path('app/tmp');
+            if (!is_dir($directorioTemp)) {
+                mkdir($directorioTemp, 0755, true);
+            }
             $rutaFinal = storage_path('app/tmp/' . $nombreArchivo);
             foreach ([90, 70, 50] as $q) {
                 $image->save($rutaFinal, $q);
