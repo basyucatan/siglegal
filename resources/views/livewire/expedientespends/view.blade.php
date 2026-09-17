@@ -40,8 +40,8 @@
                                 @forelse($expedientespends as $row)
                                     <tr>
                                         <td>{{ $row->pendiente }}</td>
-                                        <td>{{ $row->fechaPro }}</td>
-                                        <td>{{ $row->fechaCum }}</td>
+                                        <td>{{ Util::formatFecha($row->fechaPro) }}</td>
+                                        <td>{{ Util::formatFecha($row->fechaCum) }}</td>
                                         <td width="60">
                                             <div class="d-flex justify-content-around align-items-center gap-1">
                                                 <button wire:click="edit({{ $row->id }})" class="bot botNaranja botChico"

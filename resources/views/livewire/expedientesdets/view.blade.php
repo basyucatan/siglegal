@@ -67,9 +67,9 @@
                                 @forelse($expedientesdets as $row)
                                     <tr>
                                         <td>{{ $row->descripcion }}</td>
-                                        <td>{{ $row->fechaPre }}</td>
-                                        <td>{{ $row->fechaPub }}</td>
-                                        <td>{{ $row->fechaAcu }}</td>
+                                        <td>{{ Util::formatFecha($row->fechaPre, 'Corta') }}</td>
+                                        <td>{{ Util::formatFecha($row->fechaPub) }}</td>
+                                        <td>{{ Util::formatFecha($row->fechaAcu) }}</td>
                                         <td class="text-center align-middle">{!! $renderMin($row->urlPromocion, 'Ver Promoción') !!}</td>
                                         <td class="text-center align-middle">{!! $renderMin($row->urlAcuerdo, 'Ver Acuerdo') !!}</td>
                                         <td class="text-center align-middle">{!! $renderMin($row->urlAnexo, 'Ver Anexo') !!}</td>
