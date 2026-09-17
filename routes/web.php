@@ -20,34 +20,12 @@ Route::middleware("auth")->group(function () {
     Route::view('gestionPermisos', 'livewire.gestionPermisos.index');    
 
     Route::view('welcome', 'livewire.welcome.index');
-    Route::view('mensajes', 'livewire.mensajes.index');
-
     Route::view('catalogos', 'livewire.catalogos.index');
-    
-    Route::view('arbolcasas', 'livewire.arbolcasas.index');
-    Route::view('control', 'livewire.control.index');
-
-    Route::view('cuentas', 'livewire.cuentas.index');
-    Route::view('casas', 'livewire.casas.index');
-    Route::view('cuartos', 'livewire.cuartos.index');
-    Route::view('inquilinos', 'livewire.inquilinos.index');
-    Route::view('propietarios', 'livewire.propietarios.index');
-    Route::view('vehiculos', 'livewire.vehiculos.index');
-    Route::view('tecnicos', 'livewire.tecnicos.index');
-    Route::view('asignacions', 'livewire.asignacions.index');
-    Route::view('prioridads', 'livewire.prioridads.index');
-    Route::view('fallas', 'livewire.fallas.index');
-    Route::view('contratos', 'livewire.contratos.index');
-    Route::view('evidencias', 'livewire.evidencias.index');
-    Route::view('control', 'livewire.control.index');
-
-    Route::view('gastos', 'livewire.gastos.index');
-    Route::view('contratos', 'livewire.contratos.index');
-    Route::view('ocupacion', 'livewire.ocupacion.index');
-    Route::view('cobranza', 'livewire.cobranza.index');
-    Route::view('cobhuesped', 'livewire.cobhuesped.index');
-
-    Route::view('penas', 'livewire.penas.index');
-    Route::view('asistencias', 'livewire.asistencias.index');
-    Route::view('asignacions', 'livewire.asignacions.index');
+    //Route Hooks - Do not delete//
+	Route::view('expedientespends', 'livewire.expedientespends.index');
+	Route::view('expedientesdets', 'livewire.expedientesdets.index');
+	Route::view('expedientes', 'livewire.expedientes.index');
+	Route::view('organos', 'livewire.organos.index');
+	Route::view('materias', 'livewire.materias.index');
+	Route::view('personas', 'livewire.personas.index');
 });

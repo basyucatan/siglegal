@@ -9,10 +9,7 @@ class UserSeeder extends Seeder
     {
         $this->crear(['Basilio'],'SuperAdmin',1,9991,1);
         $this->crear(['Rich'],'director',2,9991005001,1);
-        $this->crear(['DonShe', 'LaGuerre', 'Marlene', 'Primo', 'Burgos', 'Sheito'],'Admin',101,9991005002,5);
-        $this->crear(['Anibal', 'Mario', 'Luis', 'Fabian', 'Jaciel', 'Yen'],'tecnico',201,9991003002,3);
-        $this->crear(['Inquilino1'],'inquilino',501,9991004001,6);
-        $this->asignarSueldos();
+        $this->crear(['Guerre', 'Anibal', 'Sheeto'],'Admin',201,9991003001,2);
     }
     private function crear($users, $rol, $IdIni, $telIni, $IdDepto)
     {
@@ -24,18 +21,8 @@ class UserSeeder extends Seeder
                 'password' => Hash::make($nombre . '$'),
                 'activo' => true,
                 'IdDepto' => $IdDepto,
-                'adicionales' => ['sueldo' => 5000]
+                'adicionales' => []
             ])->assignRole($rol);
         }
-    }
-    private function asignarSueldos()
-    {
-        User::each(function ($user) {
-            $adicionales = $user->adicionales ?? [];
-            $adicionales['sueldo'] = 5000;
-            $user->update([
-                'adicionales' => $adicionales
-            ]);
-        });
     }
 }

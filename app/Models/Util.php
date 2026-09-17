@@ -224,26 +224,14 @@ public static function formatFecha($date, $formato = 'Larga')
         if ($esBase64) @unlink($archivo->getRealPath());
         return $nombreArchivo;
     }
-    public static function colorTexto($rgba)
+    public static function borrarArchivo($carpeta, $nombreArchivo)
     {
-        if (!preg_match('/rgba?\((\d+),\s*(\d+),\s*(\d+)/', $rgba, $m)) {return '#000000';}
-        preg_match('/rgba?\((\d+),\s*(\d+),\s*(\d+)/', $rgba, $m);
-        $r = $m[1] ?? 255;
-        $g = $m[2] ?? 255;
-        $b = $m[3] ?? 255;
-        return (0.299*$r + 0.587*$g + 0.114*$b) > 186 ? '#000000' : '#ffffff';
-    }
-    public static function colorTxtHex($fondoHex)
-    {
-        $hex=str_replace('#','',$fondoHex);
-
-        $r=hexdec(substr($hex,0,2));
-        $g=hexdec(substr($hex,2,2));
-        $b=hexdec(substr($hex,4,2));
-
-        $l=(0.299*$r+0.587*$g+0.114*$b)/255;
-
-        return $l>0.5?'#000':'#fff';
+        if (!$nombreArchivo || !$carpeta) return false;
+        $ruta = "public/{$carpeta}/{$nombreArchivo}";
+        if (Storage::exists($ruta)) {
+            Storage::delete($ruta);
+        }
+        return true;
     }
     public static function getLonLat($id, $tabla) {
         $registroFila = DB::table($tabla)->where('id', $id)->first();

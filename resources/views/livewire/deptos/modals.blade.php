@@ -1,18 +1,24 @@
-@if($verModal{{modelName}})
+@if($verModalDepto)
     <div class="modal-overlay">
         <div x-data="{}" x-init="dragModal($el)" class="modal-dialog" wire:ignore.self>            
             <div class="modal-content">
                 <div class="cardPrin">
                     <div class="cardPrin-header" style="cursor: move;">
-                        <span>{{ $selected_id ? 'Editar {{modelTitle}}' : 'Crear {{modelTitle}}' }}</span>
+                        <span>{{ $selected_id ? 'Editar Depto' : 'Crear Depto' }}</span>
                     </div>
-                    <div class="cardPrin-body" style="padding: 10px; max-height: 70vh; overflow-y: auto;">
+                    <div class="cardPrin-body" style="padding: 10px; max-height: 400px; overflow-y: auto;">
                         <form>
                             <div class="row gx-1 gy-1">
                                 @if ($selected_id)
                                     <input type="hidden" wire:model="selected_id">
                                 @endif
-{{form}}
+
+<div class="col-md-6">
+    <label class="etiBase">Depto</label>
+    <input wire:model="depto" type="text" class="inpBase" onfocus="this.select()">
+    @error('depto') <span class="error text-danger">{{ $message }}</span> @enderror
+</div>
+
                             </div>
                         </form>
                     </div>

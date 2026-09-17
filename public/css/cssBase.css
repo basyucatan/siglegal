@@ -148,7 +148,7 @@ html, body {
 .botAmarillo {background: yellow; color: black}
 
 .tablaCont {
-    max-height: 350px;
+    max-height: 70vh;
     overflow-y: auto;
 }
 .tabBase {
@@ -190,12 +190,20 @@ html, body {
     overflow-y: auto !important;
     transform: translateZ(0);
 }
-.modalDialog {
-    position: absolute;
-    width: 90%;
-    max-width: 800px;
+.modal-overlay .modal-dialog.modalDialog {
+    width: 80vw !important;
+    max-width: 80vw !important;
     margin-top: 40px;
+    margin-left: auto;
+    margin-right: auto;
     z-index: 10000;
+}
+
+@media (max-width: 768px) {
+    .modal-overlay .modal-dialog.modalDialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+    }
 }
 .modalContent {
     overflow-x: hidden;

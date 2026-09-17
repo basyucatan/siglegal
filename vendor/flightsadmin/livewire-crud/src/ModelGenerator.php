@@ -8,14 +8,10 @@ use Illuminate\Support\Str;
 class ModelGenerator
 {
     private $functions = null;
-
     private $table = null;
     private $properties = null;
     private $modelNamespace = 'App';
-
-    /**
-     * ModelGenerator constructor.
-     */
+    private $relationNames = [];
     public function __construct(string $table, string $properties, string $modelNamespace)
     {
         $this->table = $table;
@@ -23,15 +19,10 @@ class ModelGenerator
         $this->modelNamespace = $modelNamespace;
         $this->_init();
     }
-
-    /**
-     * Get all the eloquent relations.
-     */
     public function getEloquentRelations()
     {
         return [$this->functions, $this->properties];
     }
-
     private function _init()
     {
         foreach ($this->_getTableRelations() as $relation) {
@@ -45,7 +36,6 @@ class ModelGenerator
             $this->functions .= $this->_getFunction($eloquent, $relation->ref_table, $relation->foreign_key, $relation->local_key);
         }
     }
-
     private function _getEloquent($relation, $tableKeys)
     {
         $eloquent = '';
@@ -63,28 +53,25 @@ class ModelGenerator
 
         return $eloquent;
     }
-
     private function _getFunction(string $relation, string $table, string $foreign_key, string $local_key)
     {
         list($model, $relationName) = $this->_getModelName($table, $relation);
-        $relClass = ucfirst($relation);
-
+        if (in_array($relationName, $this->relationNames)) {
+            $suffix = preg_replace('/^Id/', '', $foreign_key);
+            $relationName .= Str::studly($suffix);
+        }
+        $this->relationNames[] = $relationName;
         return '
-    public function '.$relationName.'()
-    {
-        return $this->'.$relation.'(\''.$this->modelNamespace.'\\'.$model.'\', \''.$foreign_key.'\', \''.$local_key.'\');
+        public function '.$relationName.'()
+        {
+            return $this->'.$relation.'(\''.$this->modelNamespace.'\\'.$model.'\', \''.$foreign_key.'\', \''.$local_key.'\');
+        }
+        ';
     }
-    ';
-    }
-
-    /**
-     * Get the name relation and model.
-     */
-    private function _getModelName($name, $relation)
+    private function _getModelName($name, $relation, $foreignKey = null)
     {
         $class = Str::studly(Str::singular($name));
         $relationName = '';
-
         switch ($relation) {
             case 'hasOne':
                 $relationName = Str::camel(Str::singular($name));
@@ -93,13 +80,8 @@ class ModelGenerator
                 $relationName = Str::camel(Str::plural($name));
                 break;
         }
-
         return [$class, $relationName];
     }
-
-    /**
-     * Get all relations from Table.
-     */
     private function _getTableRelations()
     {
         $db = DB::getDatabaseName();
@@ -117,10 +99,6 @@ SQL;
 
         return DB::select($sql);
     }
-
-    /**
-     * Get all Keys from table.
-     */
     private function _getTableKeys($table)
     {
         return DB::select("SHOW KEYS FROM {$table}");
