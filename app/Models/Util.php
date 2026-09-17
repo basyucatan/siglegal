@@ -188,44 +188,67 @@ public static function formatFecha($date, $formato = 'Larga')
     public static function guardarArchivo($archivo, $nombreBase, $carpeta, $esBase64 = false)
     {
         if (!$archivo || !$carpeta) return null;
-        // 1. Normalizar entrada: convertir base64 a archivo si es necesario
+        $directorioTemp = storage_path('app/tmp');
+        if (!is_dir($directorioTemp)) {
+            mkdir($directorioTemp, 0755, true);
+        }
+        chmod($directorioTemp, 0755);
+        $directorioPublico = storage_path('app/public');
+        chmod($directorioPublico, 0755);
+        $rutaAcumulada = $directorioPublico;
+        foreach (explode('/', trim($carpeta, '/')) as $directorio) {
+            $rutaAcumulada .= '/' . $directorio;
+            if (!is_dir($rutaAcumulada)) {
+                mkdir($rutaAcumulada, 0755);
+            }
+            chmod($rutaAcumulada, 0755);
+        }
         if ($esBase64) {
-            $datos = base64_decode(preg_replace('/^data:image\/\w+;base64,/', '', $archivo));
-            $rutaTemp = storage_path('app/tmp/' . Str::random(10) . '.png');
-            if (!is_dir(dirname($rutaTemp))) mkdir(dirname($rutaTemp), 0755, true);
+            $datos = base64_decode(
+                preg_replace('/^data:image\/\w+;base64,/', '', $archivo)
+            );
+            $rutaTemp = $directorioTemp . '/' . Str::random(10) . '.png';
             file_put_contents($rutaTemp, $datos);
             $archivo = new \Illuminate\Http\File($rutaTemp);
         }
-        // 2. Preparar nombre y extensión
         $base = Str::slug(pathinfo($nombreBase, PATHINFO_FILENAME));
-        if (strlen($base) > 96) $base = substr($base, 0, 96) . '-' . Str::random(4);
-        $nombreArchivo = $base . '.' . ($esBase64 ? 'png' : $archivo->extension());
-        // 3. Procesar si es imagen
-        $esImagen = in_array(strtolower($archivo->extension()), ['jpg', 'jpeg', 'png', 'webp']);
+        if (strlen($base) > 96) {
+            $base = substr($base, 0, 96) . '-' . Str::random(4);
+        }
+        $extension = $esBase64 ? 'png' : $archivo->extension();
+        $nombreArchivo = $base . '.' . $extension;
+        $esImagen = in_array(
+            strtolower($extension),
+            ['jpg', 'jpeg', 'png', 'webp']
+        );
         if ($esImagen) {
             $manager = new ImageManager(new Driver());
             $image = $manager->read($archivo->getRealPath());
-            $maxSide = 1000;
-            // Lógica de redimensionamiento
-            $image->scaleDown(width: $maxSide, height: $maxSide);
-            // Guardado optimizado por calidad
-            $directorioTemp = storage_path('app/tmp');
-            if (!is_dir($directorioTemp)) {
-                mkdir($directorioTemp, 0755, true);
-            }
-            $rutaFinal = storage_path('app/tmp/' . $nombreArchivo);
+            $image->scaleDown(width: 1000, height: 1000);
+            $rutaFinal = $directorioTemp . '/' . $nombreArchivo;
             foreach ([90, 70, 50] as $q) {
                 $image->save($rutaFinal, $q);
-                if (filesize($rutaFinal) <= 500 * 1024) break;
+
+                if (filesize($rutaFinal) <= 500 * 1024) {
+                    break;
+                }
             }
-            Storage::putFileAs("public/{$carpeta}", new \Illuminate\Http\File($rutaFinal), $nombreArchivo);
+            Storage::putFileAs(
+                "public/{$carpeta}",
+                new \Illuminate\Http\File($rutaFinal),
+                $nombreArchivo
+            );
             @unlink($rutaFinal);
         } else {
-            // 4. Guardado directo para documentos
-            Storage::putFileAs("public/{$carpeta}", $archivo, $nombreArchivo);
+            Storage::putFileAs(
+                "public/{$carpeta}",
+                $archivo,
+                $nombreArchivo
+            );
         }
-        // Limpieza de temporal si se creó uno
-        if ($esBase64) @unlink($archivo->getRealPath());
+        if ($esBase64) {
+            @unlink($archivo->getRealPath());
+        }
         return $nombreArchivo;
     }
     public static function borrarArchivo($carpeta, $nombreArchivo)
