@@ -46,49 +46,63 @@
                     </div>
                     @include('livewire.expedientesdets.modals')
                     <div class="tablaCont">
-                        <table class="table tabBase ch">
-                            <thead>
-                                <tr>
-                                    <th rowspan="2">Descripcion</th>
-                                    <th colspan="3" class="text-center">Fechas</th>
-                                    <th colspan="3" class="text-center">Documentos</th>
-                                    <th rowspan="2">Acciones</th>
-                                </tr>
-                                <tr>
-                                    <th>Presentación</th>
-                                    <th>Cumplida</th>
-                                    <th>Publicación</th>
-                                    <th>Promoción</th>
-                                    <th>Acuerdo</th>
-                                    <th>Anexo</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($expedientesdets as $row)
-                                    <tr>
-                                        <td>{{ $row->descripcion }}</td>
-                                        <td>{{ Util::formatFecha($row->fechaPre, 'D/MMM/AA') }}</td>
-                                        <td>{{ Util::formatFecha($row->fechaPub, 'D/MMM/AA') }}</td>
-                                        <td>{{ Util::formatFecha($row->fechaAcu, 'D/MMM/AA') }}</td>
-                                        <td class="text-center align-middle">{!! $renderMin($row->urlPromocion, 'Ver Promoción') !!}</td>
-                                        <td class="text-center align-middle">{!! $renderMin($row->urlAcuerdo, 'Ver Acuerdo') !!}</td>
-                                        <td class="text-center align-middle">{!! $renderMin($row->urlAnexo, 'Ver Anexo') !!}</td>
-                                        <td width="60">
-                                            <div class="d-flex justify-content-around align-items-center gap-1">
-                                                <button wire:click="edit({{ $row->id }})" class="bot botNaranja botChico" title="Editar">
-                                                    <i class="bi-pencil-square"></i>
-                                                </button>
-                                                <button wire:click="destroy({{ $row->id }})" class="bot botRojo botChico"
-                                                    onclick="confirm('¿Estás seguro de eliminar este registro?') || event.stopImmediatePropagation()">
-                                                    <i class="bi-trash3-fill"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                @endforelse
-                            </tbody>
-                        </table>
+<table class="table tabBase ch">
+    <thead>
+        <tr>
+            <th rowspan="2">Descripcion</th>
+            <th colspan="3" class="text-center">Fechas</th>
+            <th rowspan="2">Acciones</th>
+        </tr>
+        <tr>
+            <th>Presentación</th>
+            <th>Acuerdo</th>
+            <th>Anexos</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($expedientesdets as $row)
+            <tr>
+                <td>{{ $row->descripcion }}</td>
+                <td>
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        <span>
+                            {{ Util::formatFecha($row->fechaPre, 'D/MMM/AA') }}
+                        </span>
+                        {!! $renderMin($row->urlPromocion, 'Ver Promoción') !!}
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        <span>
+                            {{ Util::formatFecha($row->fechaAcu, 'D/MMM/AA') }}
+                        </span>
+                        {!! $renderMin($row->urlAcuerdo, 'Ver Acuerdo') !!}
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        <span>
+                            {{ Util::formatFecha($row->fechaPub, 'D/MMM/AA') }}
+                        </span>
+                        {!! $renderMin($row->urlAnexo, 'Ver Anexo') !!}
+                    </div>
+                </td>
+                <td width="60">
+                    <div class="d-flex justify-content-around align-items-center gap-1">
+                        <button wire:click="edit({{ $row->id }})" class="bot botNaranja botChico" title="Editar">
+                            <i class="bi-pencil-square"></i>
+                        </button>
+                        <button wire:click="destroy({{ $row->id }})" class="bot botRojo botChico"
+                            onclick="confirm('¿Estás seguro de eliminar este registro?') || event.stopImmediatePropagation()">
+                            <i class="bi-trash3-fill"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        @empty
+        @endforelse
+    </tbody>
+</table>
                     </div>
                 </div>
             </div>

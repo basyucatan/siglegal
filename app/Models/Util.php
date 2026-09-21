@@ -35,6 +35,7 @@ class Util
     public static function formatFecha($date, $formato = 'Larga')
     {
         $carbonDate = Carbon::parse($date);
+        if (is_null($date) || $date === '') {return '';}
         $diasSemana = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
         $meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         switch ($formato) {
