@@ -48,10 +48,12 @@
                                                     title="Editar">
                                                     <i class="bi-pencil-square"></i>
                                                 </button>
+                                                @if(auth()->user()->roles->min('nivel') < 3)
                                                 <button wire:click="destroy({{ $row->id }})" class="bot botRojo botChico"
                                                     onclick="confirm('¿Estás seguro de eliminar este registro?') || event.stopImmediatePropagation()">
                                                     <i class="bi-trash3-fill"></i>
                                                 </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
