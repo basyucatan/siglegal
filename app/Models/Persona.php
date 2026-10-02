@@ -7,25 +7,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class Persona extends Model
 {
-	use HasFactory;
-	
+    use HasFactory;
+    
     public $timestamps = false;
 
     protected $table = 'personas';
 
-    protected $fillable = ['persona','generales','adicionales'];
+    protected $fillable = ['persona', 'generales', 'adicionales'];
+
     protected $casts = [
+        'generales' => 'array',
         'adicionales' => 'array'
     ];
-	
-        public function expedientes()
-        {
-            return $this->hasMany('App\Models\Expediente', 'IdDemandado', 'id');
-        }
+    
+    public function expedientes()
+    {
+        return $this->hasMany('App\Models\Expediente', 'IdDemandado', 'id');
+    }
         
-        public function expedientesActor()
-        {
-            return $this->hasMany('App\Models\Expediente', 'IdActor', 'id');
-        }
-        
+    public function expedientesActor()
+    {
+        return $this->hasMany('App\Models\Expediente', 'IdActor', 'id');
+    }
 }
