@@ -38,10 +38,10 @@
                             <tbody>
                                 @forelse($personas as $row)
                                     <tr>
-
                                         <td>{{ $row->persona }}</td>
-                                        <td>{{ $row->generales }}</td>
-
+                                        <td title="{{ is_array($row->generales) ? json_encode($row->generales) : $row->generales }}">
+                                            {{ \Illuminate\Support\Str::limit(is_array($row->generales) ? implode(' ', $row->generales) : $row->generales, 50, '...') }}
+                                        </td>
                                         <td width="60">
                                             <div class="d-flex justify-content-around align-items-center gap-1">
                                                 <button wire:click="edit({{ $row->id }})" class="bot botNaranja botChico"
