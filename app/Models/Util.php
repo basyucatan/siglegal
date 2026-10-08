@@ -176,7 +176,7 @@ class Util
             file_put_contents($rutaTemp, $datos);
             $archivo = new \Illuminate\Http\File($rutaTemp);
         }
-        $base = Str::slug(pathinfo($nombreBase, PATHINFO_FILENAME));
+        $base = Str::slug(pathinfo($nombreBase, PATHINFO_FILENAME), '_');
         if (strlen($base) > 96) {
             $base = substr($base, 0, 96) . '-' . Str::random(4);
         }

@@ -24,9 +24,13 @@ return new class extends Migration
             $table->date('fechaPre');
             $table->date('fechaAcu')->nullable();
             $table->date('fechaPub')->nullable();
-            $table->string('docPromocion')->nullable();
-            $table->string('docAnexo')->nullable();
-            $table->string('docAcuerdo')->nullable();
+            $table->json('adicionales')->nullable();
+        });
+        Schema::create('expedientesDocs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('IdExpedienteDet')->constrained('expedientesDets')->cascadeOnDelete();
+            $table->enum('tipo', ['promocion', 'acuerdo', 'anexo']);
+            $table->string('archivo');
             $table->json('adicionales')->nullable();
         });
         Schema::create('expedientesPends', function (Blueprint $table) {

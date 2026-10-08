@@ -22,6 +22,7 @@ Route::middleware("auth")->group(function () {
     Route::view('welcome', 'livewire.welcome.index');
     Route::view('catalogos', 'livewire.catalogos.index');
     //Route Hooks - Do not delete//
+	Route::view('expedientesdocs', 'livewire.expedientesdocs.index');
 	Route::view('expedientespends', 'livewire.expedientespends.index');
 	Route::view('expedientesdets', 'livewire.expedientesdets.index');
 	Route::view('expedientes', 'livewire.expedientes.index');

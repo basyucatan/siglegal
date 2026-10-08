@@ -5,67 +5,96 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\On;
-use App\Models\Expedientesdet;
-use App\Models\Util;
-use App\Models\Expediente;
-use Illuminate\Validation\Rule;
+use App\Models\{Expedientesdet, Expedientesdoc, Expediente, Util};
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class Expedientesdets extends Component
 {
     use WithPagination, WithFileUploads;
-
     protected $paginationTheme = 'bootstrap';
-
-    public $verModalExpedientesdet = false, $selected_id, $keyWord, $IdExpediente;
+    protected $listeners = ['expedienteElegido' => 'cargarDetalles'];
+    public $verModalExpedientesdet = false, $selected_id, $keyWord = '', $IdExpediente;
     public $descripcion, $fechaPre, $fechaAcu, $fechaPub;
-
-    public $docPromocion, $filePromocion;
-    public $docAnexo, $fileAnexo;
-    public $docAcuerdo, $fileAcuerdo;
-
-    public $versionesDocumentos = [];
+    public $filesPromocion = [], $nuevosPromocion = [];
+    public $filesAcuerdo = [], $nuevosAcuerdo = [];
+    public $filesAnexo = [], $nuevosAnexo = [];
     public ?Expedientesdet $Expedientesdet = null;
 
-	protected $listeners = ['expedienteElegido' => 'cargarDetalles'];
+    protected function rules()
+    {
+        return [
+            'IdExpediente' => 'required|integer|exists:expedientes,id',
+            'descripcion' => 'required|string|max:255',
+            'fechaPre' => 'required|date',
+            'fechaAcu' => 'nullable|date',
+            'fechaPub' => 'nullable|date',
+            'filesPromocion' => 'array',
+            'filesPromocion.*' => 'file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
+            'filesAcuerdo' => 'array',
+            'filesAcuerdo.*' => 'file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
+            'filesAnexo' => 'array',
+            'filesAnexo.*' => 'file|mimes:pdf,jpg,jpeg,png,webp|max:10240'
+        ];
+    }
+
     public function cargarDetalles($idExpediente)
     {
         $this->resetPage();
         $this->IdExpediente = $idExpediente;
+        unset($this->filteredExpedientesdets, $this->expedientePadre);
     }
-    protected function rules()
-    {
-        $hasPromoActual = !empty($this->docPromocion) || !empty($this->Expedientesdet?->docPromocion);
-        $hasAcuerdoActual = !empty($this->docAcuerdo) || !empty($this->Expedientesdet?->docAcuerdo);
 
-        return [
-            'IdExpediente' => 'required',
-            'descripcion' => 'required|string|max:255',
-            'fechaPre' => 'nullable|date',
-            'fechaAcu' => 'nullable|date',
-            'fechaPub' => 'nullable|date',
-            'filePromocion' => [
-                Rule::when(!empty($this->filePromocion), ['file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240']),
-                function ($attribute, $value, $fail) use ($hasPromoActual) {
-                    if (!empty($this->fechaPre) && empty($value) && !$hasPromoActual) {
-                        $fail('El documento de promoción es obligatorio si se especifica la fecha de presentación.');
-                    }
-                },
-            ],
-            'fileAcuerdo' => [
-                Rule::when(!empty($this->fileAcuerdo), ['file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240']),
-                function ($attribute, $value, $fail) use ($hasAcuerdoActual) {
-                    if (!empty($this->fechaPub) && empty($value) && !$hasAcuerdoActual) {
-                        $fail('El documento de acuerdo es obligatorio si se especifica la fecha de publicación.');
-                    }
-                },
-            ],
-            'fileAnexo' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
-        ];
-    }
     public function updatedKeyWord()
     {
         $this->resetPage();
+    }
+
+    public function updatedNuevosPromocion()
+    {
+        $this->acumularArchivos('nuevosPromocion', 'filesPromocion');
+    }
+
+    public function updatedNuevosAcuerdo()
+    {
+        $this->acumularArchivos('nuevosAcuerdo', 'filesAcuerdo');
+    }
+
+    public function updatedNuevosAnexo()
+    {
+        $this->acumularArchivos('nuevosAnexo', 'filesAnexo');
+    }
+
+    private function acumularArchivos(string $origen, string $destino): void
+    {
+        $nuevos = $this->{$origen};
+        if (!is_array($nuevos)) {
+            $nuevos = $nuevos ? [$nuevos] : [];
+        }
+        $this->{$destino} = array_merge($this->{$destino}, $nuevos);
+        $this->{$origen} = [];
+        $this->resetValidation($destino);
+    }
+
+    public function eliminarArchivoPendiente(string $tipo, int $indice)
+    {
+        $propiedades = [
+            'promocion' => 'filesPromocion',
+            'acuerdo' => 'filesAcuerdo',
+            'anexo' => 'filesAnexo'
+        ];
+        if (!isset($propiedades[$tipo])) {
+            return;
+        }
+        $propiedad = $propiedades[$tipo];
+        if (!array_key_exists($indice, $this->{$propiedad})) {
+            return;
+        }
+        $archivos = $this->{$propiedad};
+        unset($archivos[$indice]);
+        $this->{$propiedad} = array_values($archivos);
+        $this->resetValidation($propiedad);
     }
 
     #[Computed]
@@ -74,41 +103,50 @@ class Expedientesdets extends Component
         if (!$this->IdExpediente) {
             return Expedientesdet::whereRaw('1 = 0')->paginate(12);
         }
-
-        $keyWord = '%' . $this->keyWord . '%';
-        return Expedientesdet::where('IdExpediente', $this->IdExpediente)
+        $keyWord = '%' . ($this->keyWord ?? '') . '%';
+        return Expedientesdet::with('documentos')
+            ->where('IdExpediente', $this->IdExpediente)
             ->where(function ($query) use ($keyWord) {
-                $query
-                    ->orWhere('descripcion', 'LIKE', $keyWord)
-                    ->orWhere('docPromocion', 'LIKE', $keyWord)
-                    ->orWhere('docAnexo', 'LIKE', $keyWord)
-                    ->orWhere('docAcuerdo', 'LIKE', $keyWord);
+                $query->where('descripcion', 'LIKE', $keyWord)
+                    ->orWhereHas('documentos', function ($q) use ($keyWord) {
+                        $q->where('archivo', 'LIKE', $keyWord)
+                            ->orWhere('tipo', 'LIKE', $keyWord);
+                    });
             })
+            ->orderByDesc('id')
             ->paginate(12);
     }
 
     public function render()
     {
         return view('livewire.expedientesdets.view', [
-            'expedientesdets' => $this->filteredExpedientesdets,
+            'expedientesdets' => $this->filteredExpedientesdets
         ]);
+    }
+
+    public function resetInput()
+    {
+        $this->reset([
+            'selected_id',
+            'descripcion',
+            'fechaPre',
+            'fechaAcu',
+            'fechaPub',
+            'filesPromocion',
+            'nuevosPromocion',
+            'filesAcuerdo',
+            'nuevosAcuerdo',
+            'filesAnexo',
+            'nuevosAnexo'
+        ]);
+        $this->Expedientesdet = null;
+        $this->resetValidation();
     }
 
     public function cancel()
     {
         $this->resetInput();
         $this->verModalExpedientesdet = false;
-    }
-
-    public function resetInput()
-    {
-        $this->resetExcept(['keyWord', 'IdExpediente']);
-        $this->reset([
-            'filePromocion', 'fileAnexo', 'fileAcuerdo',
-            'docPromocion', 'docAnexo', 'docAcuerdo',
-            'selected_id', 'descripcion', 'fechaPre', 'fechaAcu', 'fechaPub'
-        ]);
-        $this->Expedientesdet = null;
     }
 
     public function create()
@@ -120,126 +158,123 @@ class Expedientesdets extends Component
     public function edit($id)
     {
         $this->resetInput();
-        $this->selected_id = $id;
-        $this->Expedientesdet = Expedientesdet::findOrFail($id);
-        $this->fill($this->Expedientesdet->toArray());
+        $registro = Expedientesdet::with('documentos')
+            ->where('IdExpediente', $this->IdExpediente)
+            ->findOrFail($id);
+        $this->selected_id = $registro->id;
+        $this->Expedientesdet = $registro;
+        $this->descripcion = $registro->descripcion;
+        $this->fechaPre = $registro->fechaPre;
+        $this->fechaAcu = $registro->fechaAcu;
+        $this->fechaPub = $registro->fechaPub;
         $this->verModalExpedientesdet = true;
     }
-
+private function validarDocumentosObligatorios(): void
+{
+    if (!$this->fechaAcu) {
+        return;
+    }
+    $tieneAcuerdos = count($this->filesAcuerdo) > 0;
+    if ($this->selected_id && !$tieneAcuerdos) {
+        $tieneAcuerdos = Expedientesdoc::where('IdExpedienteDet', $this->selected_id)
+            ->where('tipo', 'acuerdo')
+            ->exists();
+    }
+    if (!$tieneAcuerdos) {
+        throw ValidationException::withMessages([
+            'filesAcuerdo' => 'Debe adjuntar al menos un acuerdo cuando existe fecha de acuerdo.'
+        ]);
+    }
+}
     public function save()
     {
         $this->validate();
-        $descTruncada = mb_substr($this->descripcion, 0, 30);
-        $nombrePromoFinal = $this->docPromocion;
-        $nombreAnexoFinal = $this->docAnexo;
-        $nombreAcuerdoFinal = $this->docAcuerdo;
-
-        if ($this->filePromocion) {
-            $basePromo = "promo_{$this->IdExpediente}_" . $descTruncada;
-            if ($this->docPromocion) {
-                Util::borrarArchivo('documentos/promo', $this->docPromocion);
+        $this->validarDocumentosObligatorios();
+        $archivosGuardados = [];
+        try {
+            DB::transaction(function () use (&$archivosGuardados) {
+                if ($this->selected_id) {
+                    $registro = Expedientesdet::where('IdExpediente', $this->IdExpediente)
+                        ->findOrFail($this->selected_id);
+                } else {
+                    $registro = new Expedientesdet();
+                }
+                $registro->fill([
+                    'IdExpediente' => $this->IdExpediente,
+                    'descripcion' => iconv('UTF-8', 'UTF-8//IGNORE', $this->descripcion),
+                    'fechaPre' => $this->fechaPre ?: null,
+                    'fechaAcu' => $this->fechaAcu ?: null,
+                    'fechaPub' => $this->fechaPub ?: null
+                ]);
+                $registro->save();
+                foreach ([
+                    'promocion' => ['filesPromocion', 'promo'],
+                    'acuerdo' => ['filesAcuerdo', 'acuerdo'],
+                    'anexo' => ['filesAnexo', 'anexo']
+                ] as $tipo => [$propiedad, $carpeta]) {
+                    foreach ($this->{$propiedad} as $archivo) {
+                        $prefijo = ['promocion' => 'pro', 'acuerdo' => 'acu', 'anexo' => 'ane'][$tipo];
+                        $base = $prefijo . '_' . now()->format('ym') . '_' . Str::lower(Str::random(12));                        
+                        $ruta = "documentos/{$carpeta}";
+                        $nombre = Util::guardarArchivo($archivo, $base, $ruta);
+                        if (!$nombre) {
+                            throw new \RuntimeException('No se pudo guardar el documento.');
+                        }
+                        $archivosGuardados[] = [$ruta, $nombre];
+                        $registro->documentos()->create([
+                            'tipo' => $tipo,
+                            'archivo' => $nombre
+                        ]);
+                    }
+                }
+            });
+        } catch (\Throwable $e) {
+            foreach ($archivosGuardados as [$carpeta, $nombre]) {
+                Util::borrarArchivo($carpeta, $nombre);
             }
-            $nombrePromoFinal = Util::guardarArchivo($this->filePromocion, $basePromo, 'documentos/promo');
+            throw $e;
         }
-
-        if ($this->fileAnexo) {
-            $baseAnexo = "anexo_{$this->IdExpediente}_" . $descTruncada;
-            if ($this->docAnexo) {
-                Util::borrarArchivo('documentos/anexo', $this->docAnexo);
-            }
-            $nombreAnexoFinal = Util::guardarArchivo($this->fileAnexo, $baseAnexo, 'documentos/anexo');
-        }
-
-        if ($this->fileAcuerdo) {
-            $baseAcuerdo = "acuerdo_{$this->IdExpediente}_" . $descTruncada;
-            if ($this->docAcuerdo) {
-                Util::borrarArchivo('documentos/acuerdo', $this->docAcuerdo);
-            }
-            $nombreAcuerdoFinal = Util::guardarArchivo($this->fileAcuerdo, $baseAcuerdo, 'documentos/acuerdo');
-        }
-
-        $registro = Expedientesdet::updateOrCreate(
-            ['id' => $this->selected_id],
-            [
-                'IdExpediente' => $this->IdExpediente,
-                'descripcion'  => iconv('UTF-8', 'UTF-8//IGNORE', $this->descripcion),
-                'fechaPre'     => $this->fechaPre ?: null,
-                'fechaAcu'     => $this->fechaAcu ?: null,
-                'fechaPub'     => $this->fechaPub ?: null,
-                'docPromocion' => $nombrePromoFinal,
-                'docAnexo'     => $nombreAnexoFinal,
-                'docAcuerdo'   => $nombreAcuerdoFinal,
-            ]
-        );
-
-        if ($this->selected_id && ($this->filePromocion || $this->fileAnexo || $this->fileAcuerdo)) {
-            $this->versionesDocumentos[$this->selected_id] = ($this->versionesDocumentos[$this->selected_id] ?? 0) + 1;
-        } elseif (!$this->selected_id && ($this->filePromocion || $this->fileAnexo || $this->fileAcuerdo)) {
-            $this->versionesDocumentos[$registro->id] = 1;
-        }
-
         $this->resetInput();
         $this->verModalExpedientesdet = false;
+        unset($this->filteredExpedientesdets);
     }
 
-    public function eliminarDocPromo()
+    public function eliminarDocumento($id)
     {
-        if ($this->selected_id) {
-            $det = Expedientesdet::find($this->selected_id);
-            if ($det && $det->docPromocion) {
-                Util::borrarArchivo('documentos/promo', $det->docPromocion);
-                $det->update(['docPromocion' => null]);
-            }
+        if (!$this->selected_id || !$this->IdExpediente) {
+            return;
         }
-        $this->docPromocion = null;
-        $this->filePromocion = null;
-        $this->Expedientesdet = $this->selected_id ? Expedientesdet::find($this->selected_id) : null;
-    }
-
-    public function eliminarDocAnexo()
-    {
-        if ($this->selected_id) {
-            $det = Expedientesdet::find($this->selected_id);
-            if ($det && $det->docAnexo) {
-                Util::borrarArchivo('documentos/anexo', $det->docAnexo);
-                $det->update(['docAnexo' => null]);
-            }
-        }
-        $this->docAnexo = null;
-        $this->fileAnexo = null;
-        $this->Expedientesdet = $this->selected_id ? Expedientesdet::find($this->selected_id) : null;
-    }
-
-    public function eliminarDocAcuerdo()
-    {
-        if ($this->selected_id) {
-            $det = Expedientesdet::find($this->selected_id);
-            if ($det && $det->docAcuerdo) {
-                Util::borrarArchivo('documentos/acuerdo', $det->docAcuerdo);
-                $det->update(['docAcuerdo' => null]);
-            }
-        }
-        $this->docAcuerdo = null;
-        $this->fileAcuerdo = null;
-        $this->Expedientesdet = $this->selected_id ? Expedientesdet::find($this->selected_id) : null;
+        $documento = Expedientesdoc::where('IdExpedienteDet', $this->selected_id)
+            ->whereHas('expedientedet', function ($query) {
+                $query->where('IdExpediente', $this->IdExpediente);
+            })
+            ->findOrFail($id);
+        $documento->delete();
+        $this->Expedientesdet?->load('documentos');
+        unset($this->filteredExpedientesdets);
     }
 
     public function paginationView()
     {
         return 'livewire.paginacionBase';
     }
-#[Computed]
-public function expedientePadre()
-{
-    return $this->IdExpediente ? Expediente::find($this->IdExpediente) : null;
-}
-public function destroy($id)
-{
-    if ($id) {
-        $det = Expedientesdet::find($id);
-        if ($det) {
-            $det->delete();
-        }
+
+    #[Computed]
+    public function expedientePadre()
+    {
+        return $this->IdExpediente
+            ? Expediente::find($this->IdExpediente)
+            : null;
     }
-}
+
+    public function destroy($id)
+    {
+        if (!$this->IdExpediente) {
+            return;
+        }
+        $registro = Expedientesdet::where('IdExpediente', $this->IdExpediente)
+            ->findOrFail($id);
+        $registro->delete();
+        unset($this->filteredExpedientesdets);
+    }
 }
